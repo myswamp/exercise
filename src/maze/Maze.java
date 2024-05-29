@@ -117,13 +117,24 @@ public class Maze {
 
         SearchAlgorithm.Node<MazeLocation> solution3 = SearchAlgorithm.astar(maze.start, maze::isDestination, maze::successors, maze::manhattanDistance);
         if (solution3 == null) {
-            System.out.println("No solution found using A* search!");
+            System.out.println("No solution found using A* manhattan search!");
         } else {
             List<MazeLocation> path3 = SearchAlgorithm.Node.nodeToPath(solution3);
             System.out.println(path3.size());
             maze.mark(path3);
             System.out.println(maze);
             maze.clear(path3);
+        }
+
+        SearchAlgorithm.Node<MazeLocation> solution4 = SearchAlgorithm.astar(maze.start, maze::isDestination, maze::successors, maze::euclideanDistance);
+        if (solution4 == null) {
+            System.out.println("No solution found using A* euclidean search!");
+        } else {
+            List<MazeLocation> path4 = SearchAlgorithm.Node.nodeToPath(solution4);
+            System.out.println(path4.size());
+            maze.mark(path4);
+            System.out.println(maze);
+            maze.clear(path4);
         }
     }
 
