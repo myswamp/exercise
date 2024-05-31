@@ -28,6 +28,7 @@ public class SearchAlgorithm {
     static class HeuristicNode<T> extends Node<T> implements Comparable<HeuristicNode<T>> {
         double cost;
         double heuristic;
+
         HeuristicNode(T state, Node<T> parent, double cost, double heuristic) {
             super(state, parent);
             this.cost = cost;
@@ -55,7 +56,7 @@ public class SearchAlgorithm {
         while (!stack.isEmpty()) {
             Node<T> current = stack.pop();
 
-            if(predicate.test(current.state)) {
+            if (predicate.test(current.state)) {
                 return current;
             }
             for (T successor : successors.apply(current.state)) {
@@ -102,12 +103,12 @@ public class SearchAlgorithm {
         pq.offer(new HeuristicNode<>(initial, null, 0.0, heuristic.applyAsDouble(initial)));
         Map<T, Double> explored = new HashMap<>();
         explored.put(initial, 0.0);
-        while(!pq.isEmpty()) {
+        while (!pq.isEmpty()) {
             HeuristicNode<T> current = pq.poll();
             if (predicate.test(current.state)) {
                 return current;
             }
-            for(T successor: successors.apply(current.state)) {
+            for (T successor : successors.apply(current.state)) {
                 // naive approach
                 double newCost = current.cost + 1;
                 if (!explored.containsKey(successor) || explored.get(successor) > newCost) {

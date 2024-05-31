@@ -3,6 +3,42 @@ package maze;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+
+enum MazeCell {
+    EMPTY(" "),
+    BLOCKED("X"),
+    START("S"),
+    DESTINATION("D"),
+    PATH("*");
+
+    private final String code;
+
+    MazeCell(String code) {
+        this.code = code;
+    }
+
+    @Override
+    public String toString() {
+        return code;
+    }
+}
+
+record MazeLocation(int row, int column) {
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MazeLocation that = (MazeLocation) o;
+        return row == that.row && column == that.column;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(row, column);
+    }
+}
 
 public class Maze {
     private final MazeLocation start, destination;
@@ -29,14 +65,14 @@ public class Maze {
         if (location.row() + 1 < grid.length && grid[location.row() + 1][location.column()] != MazeCell.BLOCKED) {
             successors.add(new MazeLocation(location.row() + 1, location.column()));
         }
-        if (location.row() -1 > -1 && grid[location.row() - 1][location.column()] != MazeCell.BLOCKED) {
+        if (location.row() - 1 > -1 && grid[location.row() - 1][location.column()] != MazeCell.BLOCKED) {
             successors.add(new MazeLocation(location.row() - 1, location.column()));
         }
         if (location.column() + 1 < grid[0].length && grid[location.row()][location.column() + 1] != MazeCell.BLOCKED) {
-            successors.add(new MazeLocation(location.row(), location.column()+1));
+            successors.add(new MazeLocation(location.row(), location.column() + 1));
         }
-        if (location.column() -1 > -1 && grid[location.row()][location.column() -1] != MazeCell.BLOCKED) {
-            successors.add(new MazeLocation(location.row(), location.column() -1));
+        if (location.column() - 1 > -1 && grid[location.row()][location.column() - 1] != MazeCell.BLOCKED) {
+            successors.add(new MazeLocation(location.row(), location.column() - 1));
         }
         return successors;
     }
@@ -78,7 +114,7 @@ public class Maze {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (MazeCell[] row: grid) {
+        for (MazeCell[] row : grid) {
             for (MazeCell cell : row) {
                 sb.append(cell);
             }
