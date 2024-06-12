@@ -34,15 +34,27 @@ public class DiningPhilosopher implements Runnable {
     public void run() {
         while (true) {
             try {
-                chopsticks.acquire(2);
                 if (rice.getBowlOfRice() < 1) {
-                    System.out.println(String.format("no more rice to eat for philosopher %d", this.id));
-                    chopsticks.release(2);
+                    System.out.println(String.format("No more rice to eat for philosopher %d", this.id));
                     break;
                 }
-                rice.eat();
-                System.out.println(String.format("Philosopher %d ate one bowl of rice, remaining rices %d", id, rice.getBowlOfRice()));
-                chopsticks.release(2);
+                if (chopsticks[id].tryAcquire()) {
+                    if (chopsticks[(id + 1) % chopsticks.length].tryAcquire()) {
+                        if (rice.getBowlOfRice() < 1) {
+                            System.out.println(String.format("No more rice to eat for philosopher %d", this.id));
+                            chopsticks[id].release();
+                            chopsticks[(id + 1) % chopsticks.length].release();
+                            break;
+                        }
+                        rice.eat();
+                        System.out.println(String.format("Philosopher %d ate one bowl of rice, remaining rice %d", id, rice.getBowlOfRice()));
+                        chopsticks[id].release();
+                        chopsticks[(id + 1) % chopsticks.length].release();
+                        Thread.sleep(100);
+                    } else {
+                        chopsticks[id].release();
+                    }
+                }
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -53,9 +65,13 @@ public class DiningPhilosopher implements Runnable {
 
 
     public static void main(String[] args) {
-        Semaphore chopsticks = new Semaphore(5);
+        int philosopherCount = 5;
+        Semaphore[] chopsticks = new Semaphore[philosopherCount];
+        for (int i = 0; i < philosopherCount; i++) {
+            chopsticks[i] = new Semaphore(1);
+        }
         Rice rices = new Rice(15);
-        for (int i = 1; i < 6; i++) {
+        for (int i = 0; i < philosopherCount; i++) {
             new Thread(new DiningPhilosopher(i, chopsticks, rices)).start();
         }
     }
