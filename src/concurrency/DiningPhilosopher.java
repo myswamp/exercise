@@ -1,64 +1,86 @@
 package concurrency;
 
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 
-class Rice {
-    private int bowlOfRice;
 
-    public Rice(int bowlOfRice) {
-        this.bowlOfRice = bowlOfRice;
+class Chopstick {
+
+    private final int serialNo;
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public Chopstick(int serialNo) {
+        this.serialNo = serialNo;
     }
 
-    public synchronized void eat() throws InterruptedException {
-        bowlOfRice--;
-        Thread.sleep(1000);
+    public boolean use(int philosopherId) throws InterruptedException {
+        boolean acquired = lock.tryLock();
+        if (acquired) {
+            System.out.printf("philosopher %d acquired chopstick %d%n", philosopherId, serialNo);
+        } else {
+            System.out.printf("philosopher %d failed to acquire chopstick %d%n", philosopherId, serialNo);
+        }
+
+        return acquired;
     }
 
-    public synchronized int getBowlOfRice() {
-        return bowlOfRice;
+    public void release(int philosopherId) {
+        lock.unlock();
+        System.out.printf("philosopher %d released chopstick %d%n", philosopherId, serialNo);
     }
+
 }
+
 
 public class DiningPhilosopher implements Runnable {
     int id;
-    Semaphore chopsticks;
-    Rice rice;
+    Chopstick left, right;
+    int retryCount = 0;
 
-    public DiningPhilosopher(int id, Semaphore chopsticks, Rice rice) {
+    public DiningPhilosopher(int id, Chopstick left, Chopstick right) {
         this.id = id;
-        this.chopsticks = chopsticks;
-        this.rice = rice;
+        this.left = left;
+        this.right = right;
     }
 
     @Override
     public void run() {
-        while (true) {
+        boolean hadMeal = false;
+        while (!hadMeal) {
             try {
-                chopsticks.acquire(2);
-                if (rice.getBowlOfRice() < 1) {
-                    System.out.println(String.format("no more rice to eat for philosopher %d", this.id));
-                    chopsticks.release(2);
-                    break;
+                Thread.sleep((retryCount++) * 1000 * id);
+                System.out.printf("Philosopher %d - %d attempt %n", id, retryCount);
+                boolean acquiredLeft = left.use(id);
+                boolean acquiredRight = right.use(id);
+                if (acquiredLeft && acquiredRight) {
+                    Thread.sleep(1000);
+                    System.out.printf("Philosopher %d had his meal%n", id);
+                    hadMeal = true;
+                } else {
+                    System.out.printf("Philosopher %d did not have his meal%n", id);
                 }
-                rice.eat();
-                System.out.println(String.format("Philosopher %d ate one bowl of rice, remaining rices %d", id, rice.getBowlOfRice()));
-                chopsticks.release(2);
-                Thread.sleep(100);
+                if (acquiredLeft) {
+                    left.release(id);
+                }
+                if (acquiredRight) {
+                    right.release(id);
+                }
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-        }
 
+        }
     }
 
 
     public static void main(String[] args) {
-        Semaphore chopsticks = new Semaphore(5);
-        Rice rices = new Rice(15);
-        for (int i = 1; i < 6; i++) {
-            new Thread(new DiningPhilosopher(i, chopsticks, rices)).start();
+        Chopstick[] chopsticks = new Chopstick[5];
+        for (int i = 0; i < 5; i++) {
+            chopsticks[i] = new Chopstick(i);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            int right = i == 0 ? 4 : i - 1;
+            new Thread(new DiningPhilosopher(i, chopsticks[i], chopsticks[right])).start();
         }
     }
-
-
 }
