@@ -3,6 +3,7 @@ package streamapi;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class Student {
     String name;
@@ -49,6 +50,9 @@ public class Student {
         // Non-static method cannot be referenced from a static context
         // weathers.stream().sorted(Weather::getTemperature).forEach(System.out::println);
 
+        Optional<Double> sum = students.parallelStream().map(x -> x.getScore()).reduce((x, y) -> x+y);
+
+        sum.ifPresent(x-> System.out.print(x));
     }
 
 
