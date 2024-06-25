@@ -2,7 +2,6 @@ package junit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
@@ -28,7 +27,7 @@ public class UnitTest {
     }
 
     @Test
-    public void doNotthrowsNPE()  {
+    public void doNotThrowNPE()  {
         List<Integer> l = spy(ArrayList.class);
         doCallRealMethod().when(l).add(any(Integer.class));
         l.add(100);
